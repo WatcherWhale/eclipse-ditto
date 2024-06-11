@@ -188,7 +188,7 @@ public final class OutboundMappingProcessorActor
         responseDroppedMonitor = connectionMonitorRegistry.forResponseDropped(this.connection);
         responseMappedMonitor = connectionMonitorRegistry.forResponseMapped(this.connection);
         signalEnrichmentFacade = ConnectivitySignalEnrichmentProvider.get(system, dittoExtensionConfig).getFacade(this.connection.getId());
-        this.processorPoolSize = determinePoolSize(processorPoolSize, mappingConfig.getMaxPoolSize());
+        this.processorPoolSize = poolSize();
         toErrorResponseFunction = DittoRuntimeExceptionToErrorResponseFunction.of(DittoHeadersValidator.get(system, dittoExtensionConfig));
     }
 
@@ -269,6 +269,13 @@ public final class OutboundMappingProcessorActor
                 }
             }
         }
+    }
+
+    @Override
+    protected int poolSize() {
+        final var x = determinePoolSize(processorPoolSize, mappingConfig.getMaxPoolSize());
+        logger.error("jeffrey processor pool size: {}", x);
+        return x;
     }
 
     private int determinePoolSize(final int connectionPoolSize, final int maxPoolSize) {
@@ -571,7 +578,7 @@ public final class OutboundMappingProcessorActor
         }
         if (l.isDebugEnabled()) {
             final String stackTrace = stackTraceAsString(exception);
-            l.debug("Got DittoRuntimeException when ExternalMessage was processed: <{}: {}> - {}. StackTrace: {}",
+                l.debug("Got DittoRuntimeException when ExternalMessage was processed: <{}: {}> - {}. StackTrace: {}",
                     exception.getClass().getSimpleName(), exception.getMessage(), exception.getDescription().orElse(""),
                     stackTrace);
         }

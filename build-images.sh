@@ -24,10 +24,6 @@ SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 # Array of the services to build Docker images for.
 # The pattern is MODULE_NAME:IMAGE_NAME as both can differ from each other.
 SERVICES=(
-  "gateway:gateway:org.eclipse.ditto.gateway.service.starter.GatewayService"
-  "policies:policies:org.eclipse.ditto.policies.service.starter.PoliciesService"
-  "things:things:org.eclipse.ditto.things.service.starter.ThingsService"
-  "thingsearch:things-search:org.eclipse.ditto.thingsearch.service.starter.SearchService"
   "connectivity:connectivity:org.eclipse.ditto.connectivity.service.ConnectivityService:--add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/sun.security.util=ALL-UNNAMED"
 )
 : "${HTTP_PROXY_LOCAL:=$HTTP_PROXY}"

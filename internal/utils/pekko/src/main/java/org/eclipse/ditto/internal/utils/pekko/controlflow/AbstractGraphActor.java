@@ -14,6 +14,8 @@ package org.eclipse.ditto.internal.utils.pekko.controlflow;
 
 import static org.eclipse.ditto.base.model.common.ConditionChecker.checkNotNull;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.UnaryOperator;
 
 import javax.annotation.Nullable;
@@ -161,17 +163,28 @@ public abstract class AbstractGraphActor<T, M> extends AbstractActor {
                 Attributes.logLevels(Attributes.logLevelDebug(), Attributes.logLevelError(),
                         Attributes.logLevelError());
 
-        return Source.<T>queue(getBufferSize(), OverflowStrategy.dropNew())
-                .map(this::incrementDequeueCounter)
+        final var poolSize = poolSize();
+        return Source.<T>queue(getBufferSize(), OverflowStrategy.backpressure())
+                .async()
+                .mapAsync(Math.max(poolSize, 1), this::incrementDequeueCounter)
                 .via(Flow.fromFunction(this::beforeProcessMessage))
                 .to(createSink())
                 .withAttributes(streamLogLevels.and(getSupervisionStrategyAttribute()))
                 .run(materializer);
     }
 
-    private <E> E incrementDequeueCounter(final E element) {
-        dequeueCounter.increment();
-        return element;
+    private <E> CompletionStage<E> incrementDequeueCounter(final E element) {
+        final CompletableFuture<E> future = new CompletableFuture<>();
+        future.complete(element);
+        return future.thenApply(result -> {
+            dequeueCounter.increment();
+            return result;
+        });
+    }
+
+    protected int poolSize() {
+        logger.error("jeffrey default pool size: 1");
+        return 1;
     }
 
     /**
