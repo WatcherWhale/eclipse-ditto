@@ -166,8 +166,8 @@ public abstract class AbstractGraphActor<T, M> extends AbstractActor {
         final var poolSize = poolSize();
         return Source.<T>queue(getBufferSize(), OverflowStrategy.backpressure())
                 .async()
-                .mapAsync(Math.max(poolSize, 1), this::incrementDequeueCounter)
-                .via(Flow.fromFunction(this::beforeProcessMessage))
+//                .mapAsync(Math.max(poolSize, 1), this::incrementDequeueCounter)
+                .via(Flow.fromFunction(this::beforeProcessMessage)).async()
                 .to(createSink())
                 .withAttributes(streamLogLevels.and(getSupervisionStrategyAttribute()))
                 .run(materializer);

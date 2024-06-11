@@ -188,7 +188,7 @@ public final class OutboundMappingProcessorActor
         responseDroppedMonitor = connectionMonitorRegistry.forResponseDropped(this.connection);
         responseMappedMonitor = connectionMonitorRegistry.forResponseMapped(this.connection);
         signalEnrichmentFacade = ConnectivitySignalEnrichmentProvider.get(system, dittoExtensionConfig).getFacade(this.connection.getId());
-        this.processorPoolSize = poolSize();
+        this.processorPoolSize =  determinePoolSize(processorPoolSize, mappingConfig.getMaxPoolSize());
         toErrorResponseFunction = DittoRuntimeExceptionToErrorResponseFunction.of(DittoHeadersValidator.get(system, dittoExtensionConfig));
     }
 
@@ -271,12 +271,12 @@ public final class OutboundMappingProcessorActor
         }
     }
 
-    @Override
-    protected int poolSize() {
-        final var x = determinePoolSize(processorPoolSize, mappingConfig.getMaxPoolSize());
-        logger.error("jeffrey processor pool size: {}", x);
-        return x;
-    }
+//    @Override
+//    protected int poolSize() {
+//        final var x = determinePoolSize(processorPoolSize, mappingConfig.getMaxPoolSize());
+//        logger.error("jeffrey processor pool size: {}", x);
+//        return x;
+//    }
 
     private int determinePoolSize(final int connectionPoolSize, final int maxPoolSize) {
         if (connectionPoolSize > maxPoolSize) {
